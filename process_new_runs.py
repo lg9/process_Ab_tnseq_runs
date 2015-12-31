@@ -9,7 +9,8 @@ from subprocess import call
 # PARAMETERS and CONSTANTS -----------------------------------------------------
 home_dir = r'/home/lg/'
 storage_dir = r'/home/manoil-data/lg/Tn-seq_Ab/'
-working_dir = r'../work_Ab/'
+working_dir = r'/home/lg/work_Ab/'
+tnseq_program_dir = r'/home/lg/Tn-seq-1.1.1/python/'
 # ------------------------------------------------------------------------------
 
 def move_fastq_files():
@@ -51,5 +52,22 @@ def move_fastq_files():
             os.chdir(home_dir)
             args = ['rmdir', rundir + r'/']
             call(args)  # will see error if dir is not empty
-            # perhaps add exception handling for this in the future
+            # in future, perhaps add exception handling for this call(args)
     os.chdir(cwd)
+
+def process_samples():
+    cwd = os.getcwd()
+    os.chdir(working_dir)
+    dirlist = os.listdir('.')
+    sample_pattern = re.compile(r'^(\d{6}-?\d*_.+)((\.fastq)|(\.fq))(\.gz)?')
+    for item in dirlist:
+        # check that it's a sample file:
+        m = sample_pattern.search(item)
+        if m:
+            print 'Processing sample: ', item
+            # unzip if necessary
+            if m.group(5):
+                print '  unzipping...'
+                args = ['gzip', '-d', item]
+                call(args)
+            
