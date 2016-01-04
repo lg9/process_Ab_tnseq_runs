@@ -154,7 +154,8 @@ def process_samples():
                     args = ['rm', file]
                     call(args)
             os.chdir(working_dir)
+            args = ['rm', unzipped_file]
+            call(args)
     os.chdir(cwd)
-    # remove fastq files
     return meta_data
 
