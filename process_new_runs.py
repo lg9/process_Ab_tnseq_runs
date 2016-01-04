@@ -14,8 +14,8 @@ tnseq_wd = r'/home/lg/work_Ab/work/'
 tnseq_program_dir = r'/home/lg/Tn-seq-1.1.1/python/'
 sum_mg_norm_dir = r'/home/lg/work_Ab/sum_mg_norm_files/'
 mapping_meta_data_file = r'/home/lg/work_Ab/mapping_meta_data.txt'
-out_annot_file = r'/home/lg/work_Ab/rcmp.xls'
-out_tab_file = r'/home/lg/work_Ab/tbgn.xls'
+out_annot_file = r'/home/lg/work_Ab/1N_rcmp.xls'
+out_tab_file = r'/home/lg/work_Ab/1N_TbGn.xls'
 
 # process_map
 pm_reference = r'/home/lg/work_Ab/AB5075UW_allreplicons.fna'
@@ -190,6 +190,6 @@ def tabulate_samples(sample_names):
     os.chdir(working_dir)
     print 'Annotating and tabulating samples...'
     args = ['python', tnseq_program_dir + 'process_annotate_tabulate.py'] + pat_options \
-           + [sum_mg_norm_dir + s + '_trim_sum_mg_norm.txt' for s in sorted(sample_names)]
+           + [sum_mg_norm_dir + s + '_trim_sum_mg_norm.txt' for s in sample_names]
     call(args)
     os.chdir(cwd)
