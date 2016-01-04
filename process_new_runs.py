@@ -14,6 +14,8 @@ tnseq_wd = r'/home/lg/work_Ab/work/'
 tnseq_program_dir = r'/home/lg/Tn-seq-1.1.1/python/'
 sum_mg_norm_dir = r'/home/lg/work_Ab/sum_mg_norm_files/'
 mapping_meta_data_file = r'/home/lg/work_Ab/mapping_meta_data.txt'
+out_annot_file = r'/home/lg/work_Ab/rcmp.xls'
+out_tab_file = r'/home/lg/work_Ab/tbgn.xls'
 
 # process_map
 pm_reference = r'/home/lg/work_Ab/AB5075UW_allreplicons.fna'
@@ -25,6 +27,15 @@ pm_options = [  '-j', \                         # very tn end by read1
 '''
 pm_options = [  '-j', '--tn_end=AGACAG', '--normfactor=10000000', '-s', '--workingdir=' + tnseq_wd ]
 '''
+pat_annotation = r'/home/lg/work_Ab/all_features_chromosome.ptt,' + \
+                 r'/home/lg/work_Ab/all_features_p1.ptt,' + \
+                 r'/home/lg/work_Ab/all_features_p2.ptt,' + \
+                 r'/home/lg/work_Ab/all_features_p3.ptt'
+pat_options = [ '--reffile=' + pm_reference, \
+                '--annofiles=' + pat_annotation, \
+                '--outfile_anno=' + out_annot_file, \
+                '--outfile_tab=' + out_tab_file, \
+                '--workingdir=' + tnseq_wd ]
 
 # ------------------------------------------------------------------------------
 
@@ -173,3 +184,12 @@ def map_samples():
     mdo.close()
     os.chdir(cwd)
     return meta_data
+
+def tabulate_samples(sample_names):
+    cwd = os.getcwd()
+    os.chdir(working_dir)
+    print 'Annotating and tabulating samples...'
+    args = ['python', tnseq_program_dir + 'process_annotate_tabulate.py'] + pat_options \
+           + [sum_mg_norm_dir + s + '_trim_sum_mg_norm.txt' for s in sorted(sample_names)]
+    call(args)
+    os.chdir(cwd)
