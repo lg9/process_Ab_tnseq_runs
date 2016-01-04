@@ -13,6 +13,7 @@ working_dir = r'/home/lg/work_Ab/'
 tnseq_wd = r'/home/lg/work_Ab/work/'
 tnseq_program_dir = r'/home/lg/Tn-seq-1.1.1/python/'
 sum_mg_norm_dir = r'/home/lg/work_Ab/sum_mg_norm_files/'
+mapping_meta_data_file = r'/home/lg/work_Ab/mapping_meta_data.txt'
 
 # process_map
 pm_reference = r'/home/lg/work_Ab/AB5075UW_allreplicons.fna'
@@ -79,10 +80,10 @@ def get_meta_data(map_logfile):
     lfh = open(map_logfile, 'r')
     for line in lfh.readlines():
         #print line
-        if 'Tot_reads' not in sample_md:
+        if 'Total_reads' not in sample_md:
             m = tot_reads_pattern.search(line)
             if m:
-                sample_md['Tot_reads'] = int(m.group(1))
+                sample_md['Total_reads'] = int(m.group(1))
         if 'Tn_matches' not in sample_md:
             m = tn_match_pattern.search(line)
             if m:
@@ -156,6 +157,19 @@ def map_samples():
             os.chdir(working_dir)
             args = ['rm', unzipped_file]
             call(args)
+    # write meta data
+    if not os.path.exists(mapping_meta_data_file):
+        mdo = open(mapping_meta_data_file, 'w')
+        mdo.write('Sample\tTotal reads\tTn matches\tMapped reads\tPositions\tMerged\n')
+        mdo.close()
+    mdo = open(mapping_meta_data_file, 'a')
+    for sample in sorted(meta_data.keys()):
+        mdo.write('\t'.join([ sample, \
+                             str(meta_data[sample]['Total_reads']), \
+                             str(meta_data[sample]['Tn_matches']), \
+                             str(meta_data[sample]['Mapped_reads']), \
+                             str(meta_data[sample]['Positions']), \
+                             str(meta_data[sample]['Merged_positions']) ] ) + '\n' )
+    mdo.close()
     os.chdir(cwd)
     return meta_data
-
