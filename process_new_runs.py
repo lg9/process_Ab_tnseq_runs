@@ -102,7 +102,7 @@ def get_meta_data(map_logfile):
     lfh.close()
     return sample_md
 
-def process_samples():
+def map_samples():
     cwd = os.getcwd()
     os.chdir(working_dir)
     dirlist = os.listdir('.')
