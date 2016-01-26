@@ -41,6 +41,13 @@ pat_options = [ '--reffile=' + pm_reference, \
 # ------------------------------------------------------------------------------
 
 def move_fastq_files():
+    ''' Looks for directories like '160101_S1-2' or '151228-160101_S1-4', etc.
+        in home directory, then:
+        1.  copies them to the storage_dir
+        2.  renames and moves them to the working_dir
+            e.g., 160119_S1-26/CB4_S1_L001_R1_001.fastq.gz
+            becomes:  [working_dir]/160119_CB4.fastq.gz
+    '''
     cwd = os.getcwd()
     os.chdir(home_dir)
     dirlist = os.listdir('.')
@@ -83,6 +90,9 @@ def move_fastq_files():
     os.chdir(cwd)
 
 def get_meta_data(map_logfile):
+    ''' Sub function to get meta data from a saved map_logfile.
+        Called by map_samples()
+    '''
     sample_md = {}
     tot_reads_pattern = re.compile(r'Total reads processed:\s+(\d+)\s?')
     tn_match_pattern = re.compile(r'matching tn end seq:\s+(\d+)\s?')
@@ -116,6 +126,13 @@ def get_meta_data(map_logfile):
     return sample_md
 
 def map_samples():
+    ''' For all run files in working_dir (e.g., 160119_CC4.fastq.gz):
+         1. unzips if necessary
+         2. runs process_map.py, capturing and saving output meta data
+         3. copies _trim_sum_mg_norm.txt file to sum_mg_norm_dir
+         4. removes all working files, including source fastq file
+        Then, adds meta data for each run to mapping_meta_data_file
+    '''
     cwd = os.getcwd()
     os.chdir(working_dir)
     dirlist = os.listdir('.')
@@ -187,6 +204,9 @@ def map_samples():
     return meta_data
 
 def sample_info_f_runfile_name(filename):
+    ''' Sub function for extracting sample info from a run filename.
+        Called by combine_multiple_runs()
+    '''
     fn_pattern = re.compile(r'(^\d*_?(.+)_S(\d+).*((\.fastq)|(\.fq)))(\.gz)?')
     m = fn_pattern.match(filename)
     if not m:
@@ -202,7 +222,7 @@ def sample_info_f_runfile_name(filename):
 def combine_multiple_runs(folder_list, new_folder, directory=None):
     '''
     Function to concatenate run fastq files
-    from multiple runs of the same samples.
+    from multiple runs (in separate folders) of the same samples.
     Combined runs are created in the specified new_folder.
     
     Does this in the home directory or the specified one
@@ -263,6 +283,10 @@ def combine_multiple_runs(folder_list, new_folder, directory=None):
     os.chdir(cwd)
 
 def tabulate_samples(sample_names):
+    ''' Runs process_annotate_tabulate.py
+        on the corresponding _trim_sum_mg_norm.txt files
+        from a list of specified samples.
+    '''
     cwd = os.getcwd()
     os.chdir(working_dir)
     print 'Annotating and tabulating samples...'
