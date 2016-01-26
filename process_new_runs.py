@@ -2,6 +2,7 @@
 # (C) Larry Gallagher 2016
 #
 # For auto processing of A.b. tn-seq run data
+# Written for Python 2.6
 
 import os, re
 from subprocess import call
@@ -13,6 +14,9 @@ working_dir = r'/home/lg/work_Ab/'
 tnseq_wd = r'/home/lg/work_Ab/work/'
 tnseq_program_dir = r'/home/lg/Tn-seq-1.1.1/python/'
 sum_mg_norm_dir = r'/home/lg/work_Ab/sum_mg_norm_files/'
+mapping_meta_data_file = r'/home/lg/work_Ab/mapping_meta_data.txt'
+out_annot_file = r'/home/lg/work_Ab/1N_rcmp.xls'
+out_tab_file = r'/home/lg/work_Ab/1N_TbGn.xls'
 
 # process_map
 pm_reference = r'/home/lg/work_Ab/AB5075UW_allreplicons.fna'
@@ -24,10 +28,26 @@ pm_options = [  '-j', \                         # very tn end by read1
 '''
 pm_options = [  '-j', '--tn_end=AGACAG', '--normfactor=10000000', '-s', '--workingdir=' + tnseq_wd ]
 '''
+pat_annotation = r'/home/lg/work_Ab/all_features_chromosome.ptt,' + \
+                 r'/home/lg/work_Ab/all_features_p1.ptt,' + \
+                 r'/home/lg/work_Ab/all_features_p2.ptt,' + \
+                 r'/home/lg/work_Ab/all_features_p3.ptt'
+pat_options = [ '--reffile=' + pm_reference, \
+                '--annofiles=' + pat_annotation, \
+                '--outfile_anno=' + out_annot_file, \
+                '--outfile_tab=' + out_tab_file, \
+                '--workingdir=' + tnseq_wd ]
 
 # ------------------------------------------------------------------------------
 
 def move_fastq_files():
+    ''' Looks for directories like '160101_S1-2' or '151228-160101_S1-4', etc.
+        in home directory, then:
+        1.  copies them to the storage_dir
+        2.  renames and moves them to the working_dir
+            e.g., 160119_S1-26/CB4_S1_L001_R1_001.fastq.gz
+            becomes:  [working_dir]/160119_CB4.fastq.gz
+    '''
     cwd = os.getcwd()
     os.chdir(home_dir)
     dirlist = os.listdir('.')
@@ -70,6 +90,9 @@ def move_fastq_files():
     os.chdir(cwd)
 
 def get_meta_data(map_logfile):
+    ''' Sub function to get meta data from a saved map_logfile.
+        Called by map_samples()
+    '''
     sample_md = {}
     tot_reads_pattern = re.compile(r'Total reads processed:\s+(\d+)\s?')
     tn_match_pattern = re.compile(r'matching tn end seq:\s+(\d+)\s?')
@@ -79,10 +102,10 @@ def get_meta_data(map_logfile):
     lfh = open(map_logfile, 'r')
     for line in lfh.readlines():
         #print line
-        if 'Tot_reads' not in sample_md:
+        if 'Total_reads' not in sample_md:
             m = tot_reads_pattern.search(line)
             if m:
-                sample_md['Tot_reads'] = int(m.group(1))
+                sample_md['Total_reads'] = int(m.group(1))
         if 'Tn_matches' not in sample_md:
             m = tn_match_pattern.search(line)
             if m:
@@ -102,7 +125,14 @@ def get_meta_data(map_logfile):
     lfh.close()
     return sample_md
 
-def process_samples():
+def map_samples():
+    ''' For all run files in working_dir (e.g., 160119_CC4.fastq.gz):
+         1. unzips if necessary
+         2. runs process_map.py, capturing and saving output meta data
+         3. copies _trim_sum_mg_norm.txt file to sum_mg_norm_dir
+         4. removes all working files, including source fastq file
+        Then, adds meta data for each run to mapping_meta_data_file
+    '''
     cwd = os.getcwd()
     os.chdir(working_dir)
     dirlist = os.listdir('.')
@@ -156,6 +186,111 @@ def process_samples():
             os.chdir(working_dir)
             args = ['rm', unzipped_file]
             call(args)
+    # write meta data
+    if not os.path.exists(mapping_meta_data_file):
+        mdo = open(mapping_meta_data_file, 'w')
+        mdo.write('Sample\tTotal reads\tTn matches\tMapped reads\tPositions\tMerged\n')
+        mdo.close()
+    mdo = open(mapping_meta_data_file, 'a')
+    for sample in sorted(meta_data.keys()):
+        mdo.write('\t'.join([ sample, \
+                             str(meta_data[sample]['Total_reads']), \
+                             str(meta_data[sample]['Tn_matches']), \
+                             str(meta_data[sample]['Mapped_reads']), \
+                             str(meta_data[sample]['Positions']), \
+                             str(meta_data[sample]['Merged_positions']) ] ) + '\n' )
+    mdo.close()
     os.chdir(cwd)
     return meta_data
 
+def sample_info_f_runfile_name(filename):
+    ''' Sub function for extracting sample info from a run filename.
+        Called by combine_multiple_runs()
+    '''
+    fn_pattern = re.compile(r'(^\d*_?(.+)_S(\d+).*((\.fastq)|(\.fq)))(\.gz)?')
+    m = fn_pattern.match(filename)
+    if not m:
+        return None
+    sample = m.group(2)
+    info = { sample: {} }
+    info[sample]['unzipped_file'] = m.group(1)
+    info[sample]['S_no'] = int(m.group(3))
+    info[sample]['fq_type'] = m.group(4)
+    info[sample]['zipped'] = m.group(7)
+    return info
+
+def combine_multiple_runs(folder_list, new_folder, directory=None):
+    '''
+    Function to concatenate run fastq files
+    from multiple runs (in separate folders) of the same samples.
+    Combined runs are created in the specified new_folder.
+    
+    Does this in the home directory or the specified one
+    '''
+    cwd = os.getcwd()
+    if not directory:
+        directory = home_dir
+    os.chdir(directory)
+    for folder in folder_list:
+        if not os.path.isdir(folder):
+            print "source directory, " + folder + " not found."
+            return None
+    if not os.path.isdir(new_folder):
+        os.mkdir(new_folder)
+    # create lists of files to concatenate per sample
+    print "Reading and unzipping contents of source folders..."
+    sample_cat_lists = {}
+    sample_S_nos = {}
+    for folder in folder_list:
+        filelist = os.listdir(folder)
+        for fn in filelist:
+            rni = sample_info_f_runfile_name(fn)
+            # skip if it's not a sample run file
+            if not rni:     
+                continue
+            sample = rni.keys()[0]
+            if sample not in sample_cat_lists:
+                sample_cat_lists[sample] = []
+                sample_S_nos[sample] = []
+            sample_path = folder + '/' + rni[sample]['unzipped_file']
+            sample_cat_lists[sample].append(sample_path)
+            if rni[sample]['S_no'] not in sample_S_nos[sample]:
+                sample_S_nos[sample].append(rni[sample]['S_no'])
+            if rni[sample]['zipped']:
+                print '   unzipping ' + folder + '/' + fn
+                args = ['gzip', '-d', folder + '/' + fn]
+                call(args)
+    # concatenate the files for each sample and place in new_folder
+    print "Concatenating and (re-)zipping files..."
+    for sample in sample_cat_lists.keys():
+        print '   concatenating files for sample ' + sample
+        s_no = 'S' + str(sample_S_nos[sample][0])
+        if len(sample_S_nos[sample]) > 1:
+            for i in range(1,len(sample_S_nos[sample])):
+                s_no += '-' + str(sample_S_nos[sample][i])
+        newfilename = sample + '_' + s_no + '.fastq'
+        destfileandpath = new_folder + '/' + newfilename
+        fo = open(destfileandpath, 'w')
+        args = ['cat'] + sample_cat_lists[sample]
+        call(args, stdout=fo)
+        fo.close()
+        files_to_zip = sample_cat_lists[sample] + [destfileandpath]
+        for f in files_to_zip:
+            print '      zipping ' + f
+            args = ['gzip', f]
+            call(args)
+    print "Done"
+    os.chdir(cwd)
+
+def tabulate_samples(sample_names):
+    ''' Runs process_annotate_tabulate.py
+        on the corresponding _trim_sum_mg_norm.txt files
+        from a list of specified samples.
+    '''
+    cwd = os.getcwd()
+    os.chdir(working_dir)
+    print 'Annotating and tabulating samples...'
+    args = ['python', tnseq_program_dir + 'process_annotate_tabulate.py'] + pat_options \
+           + [sum_mg_norm_dir + s + '_trim_sum_mg_norm.txt' for s in sample_names]
+    call(args)
+    os.chdir(cwd)
