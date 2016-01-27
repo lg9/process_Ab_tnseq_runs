@@ -7,6 +7,7 @@
 import os, re
 from subprocess import call
 from operator import itemgetter
+from math import log
 
 # PARAMETERS and CONSTANTS -----------------------------------------------------
 home_dir = r'/home/lg/'
