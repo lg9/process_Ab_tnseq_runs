@@ -307,17 +307,18 @@ def make_wig_files(rcmpfile=out_annot_file, makeqn0=False, logtfm=False):
         logtfm: set to T to log2 transform data
     '''
     # Read data from rcmp file and place in data structure
+    print "   reading data..."
     inf = open(rcmpfile, 'r')
     header = inf.readline()
     h_flds = header.split('\t')
     h_fld_count = len(h_flds)
-    rpcln_fld_no = None
+    rplcn_fld_no3 = None
     effpos_fld_no = None
     dir_fld_no = None
     notes_fld_no = None
     for i in range(h_fld_count):
         if 'eplicon' in h_flds[i]:
-            rpcln_fld_no = i
+            rplcn_fld_no = i
         if 'ffective' in h_flds[i]:
             effpos_fld_no = i
         if 'Dir' in h_flds[i]:
@@ -369,13 +370,15 @@ def make_wig_files(rcmpfile=out_annot_file, makeqn0=False, logtfm=False):
             if rds > 0 and rds < min_non0_val:
                 min_non0_val = rds
             if makeqn0:
-                rds -= float(flds[i + sampe_count])
+                rds -= float(flds[i + sample_count])
             datum.append(rds)
         data.append(datum)
     inf.close()
+    print "      lines read: " + str(len(data))
     # if logtfm set to T, first re-normalize all read counts so that the minimum
     # non-zero value is 2, then log2-transform all non-zero values.
     if logtfm:
+        print "   log-transforming data..."
         r = range(3, len(data[0]))
         for d in range(len(data)):
             for e in r:
@@ -386,6 +389,7 @@ def make_wig_files(rcmpfile=out_annot_file, makeqn0=False, logtfm=False):
     data.sort(key = itemgetter(1))      # next sort by secondary key, effpos
     data.sort(key = itemgetter(0))      # finally sort by primary key, replicon
     # Make .wig files
+    print "   writing wig files..."
     # create wig_file_dir if it doesn't exist
     if not os.path.isdir(wig_file_dir):
         os.mkdir(wig_file_dir)
@@ -404,17 +408,15 @@ def make_wig_files(rcmpfile=out_annot_file, makeqn0=False, logtfm=False):
             new_replicon_line = 'variableStep\tchrom=' + chmsm + '\n'
             for fh in fhs:
                 fh.write(new_replicon_line)
-            effpos = datum[1]
-            if datum[2].strip() == 'F':
-                dir_factor = 1
-            else:
-                dir_factor = -1
-            for sn in r:    # sample number
-                if datum[sn+3] > 0:
-                    fhs[sn].write(str(effpos) + '\t' \
-                                  + str(dir_factor * datum[sn+3]) + '\n')
+        effpos = datum[1]
+        if datum[2].strip() == 'F':
+            dir_factor = 1
+        else:
+            dir_factor = -1
+        for sn in r:    # sample number
+            if datum[sn+3] > 0:
+                fhs[sn].write(str(effpos) + '\t' \
+                              + str(dir_factor * datum[sn+3]) + '\n')
     # close filehandles
     for fh in fhs:
         fh.close()
-    
-    
