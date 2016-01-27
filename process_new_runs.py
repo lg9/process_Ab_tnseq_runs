@@ -6,6 +6,7 @@
 
 import os, re
 from subprocess import call
+from operator import itemgetter
 
 # PARAMETERS and CONSTANTS -----------------------------------------------------
 home_dir = r'/home/lg/'
@@ -17,6 +18,7 @@ sum_mg_norm_dir = r'/home/lg/work_Ab/sum_mg_norm_files/'
 mapping_meta_data_file = r'/home/lg/work_Ab/mapping_meta_data.txt'
 out_annot_file = r'/home/lg/work_Ab/1N_rcmp.xls'
 out_tab_file = r'/home/lg/work_Ab/1N_TbGn.xls'
+wig_file_dir = r'/home/lg/work_Ab/wig_files/'
 
 # process_map
 pm_reference = r'/home/lg/work_Ab/AB5075UW_allreplicons.fna'
@@ -290,7 +292,129 @@ def tabulate_samples(sample_names):
     cwd = os.getcwd()
     os.chdir(working_dir)
     print 'Annotating and tabulating samples...'
-    args = ['python', tnseq_program_dir + 'process_annotate_tabulate.py'] + pat_options \
-           + [sum_mg_norm_dir + s + '_trim_sum_mg_norm.txt' for s in sample_names]
+    args = ['python', tnseq_program_dir + 'process_annotate_tabulate.py'] \
+           + pat_options + [sum_mg_norm_dir + s + '_trim_sum_mg_norm.txt' \
+                            for s in sample_names]
     call(args)
     os.chdir(cwd)
+
+def make_wig_files(rcmpfile=out_annot_file, makeqn0=False, logtfm=False):
+    '''
+    Makes wig files of the runs in a rcmp file.
+    wig files placed in wig_file_dir.
+    Options:
+        makeqn0: set to T to make wig files for qn0 reads
+        logtfm: set to T to log2 transform data
+    '''
+    # Read data from rcmp file and place in data structure
+    inf = open(rcmpfile, 'r')
+    header = inf.readline()
+    h_flds = header.split('\t')
+    h_fld_count = len(h_flds)
+    rpcln_fld_no = None
+    effpos_fld_no = None
+    dir_fld_no = None
+    notes_fld_no = None
+    for i in range(h_fld_count):
+        if 'eplicon' in h_flds[i]:
+            rpcln_fld_no = i
+        if 'ffective' in h_flds[i]:
+            effpos_fld_no = i
+        if 'Dir' in h_flds[i]:
+            dir_fld_no = i
+        if 'Notes' in h_flds[i]:
+            notes_fld_no = i
+    samples = list()
+    sample_count = 0
+    wigfile_names = list()
+    sample_fld_nos = list()
+    sample_pattern = re.compile(\
+        r'(\d+-?\d*_[a-zA-Z0-9]+)(_trim)?_sum(_mg)?(_norm)?((_all)|(_q0))?.txt')
+    for i in range(notes_fld_no + 1, h_fld_count):
+        m = sample_pattern.match(h_flds[i])
+        sample = m.group(1)
+        # check to see if it's a q0 sample
+        if sample in samples and m.group(7):
+            # if so, record the number of samples and quit the loop
+            sample_count = len(samples)
+            break
+        samples.append(sample)
+        # determine the wig file name
+        wigfile_name = sample + '_'
+        if m.group(3):
+            wigfile_name += 'mg'
+        if m.group(4):
+            wigfile_name += '1N'
+        if makeqn0:
+            wigfile_name += 'qn0'
+        else:
+            wigfile_name += 'aQ'
+        if logtfm:
+            wigfile_name += '_log2'
+        wigfile_name += '.wig'
+        wigfile_names.append(wigfile_name)
+        sample_fld_nos.append(i)
+    # read data into data structure:
+    #   a list, each entry a list of replicon, pos, dir and sample read counts
+    data = list()
+    min_non0_val = float(10000000.0)
+    for line in inf.readlines():
+        flds = line.split('\t')
+        datum = list()
+        datum.append(flds[rplcn_fld_no])
+        datum.append(int(flds[effpos_fld_no]))
+        datum.append(flds[dir_fld_no])
+        for i in sample_fld_nos:
+            rds = float(flds[i])
+            if rds > 0 and rds < min_non0_val:
+                min_non0_val = rds
+            if makeqn0:
+                rds -= float(flds[i + sampe_count])
+            datum.append(rds)
+        data.append(datum)
+    inf.close()
+    # if logtfm set to T, first re-normalize all read counts so that the minimum
+    # non-zero value is 2, then log2-transform all non-zero values.
+    if logtfm:
+        r = range(3, len(data[0]))
+        for d in range(len(data)):
+            for e in r:
+                if data[d][e] > 0:
+                    data[d][e] = log( (data[d][e] * 2 / min_non0_val), 2 )
+    # sort the data
+    data.sort(key = itemgetter(2))      # first sort by the tertiary key, dir
+    data.sort(key = itemgetter(1))      # next sort by secondary key, effpos
+    data.sort(key = itemgetter(0))      # finally sort by primary key, replicon
+    # Make .wig files
+    # create wig_file_dir if it doesn't exist
+    if not os.path.isdir(wig_file_dir):
+        os.mkdir(wig_file_dir)
+    # create array of filehandles for the various wig files
+    fhs = list()
+    for wfn in wigfile_names:
+        wfpn = wig_file_dir + wfn
+        fh = open(wfpn, 'w')
+        fhs.append(fh)
+    # write the data
+    r = range(sample_count)
+    chmsm = ''
+    for datum in data:
+        if datum[0] != chmsm:
+            chmsm = datum[0]
+            new_replicon_line = 'variableStep\tchrom=' + chmsm + '\n'
+            for fh in fhs:
+                fh.write(new_replicon_line)
+            effpos = datum[1]
+            if datum[2].strip() == 'F':
+                dir_factor = 1
+            else:
+                dir_factor = -1
+            for sn in r:    # sample number
+                if datum[sn+3] > 0:
+                    fhs[sn].write(str(effpos) + '\t' \
+                                  + str(dir_factor * datum[sn+3]) + '\n')
+    # close filehandles
+    for fh in fhs:
+        fh.close()
+    
+    
