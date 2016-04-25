@@ -11,15 +11,15 @@ from math import log
 
 # PARAMETERS and CONSTANTS -----------------------------------------------------
 home_dir = r'/home/lg/'
-storage_dir = r'/home/manoil-data/lg/Tn-seq_Ab/'
-working_dir = r'/home/lg/work_Ab/'
-tnseq_wd = r'/home/lg/work_Ab/work/'
-tnseq_program_dir = r'/home/lg/Tn-seq-1.1.1/python/'
-sum_mg_norm_dir = r'/home/lg/work_Ab/sum_mg_norm_files/'
-mapping_meta_data_file = r'/home/lg/work_Ab/mapping_meta_data.txt'
-out_annot_file = r'/home/lg/work_Ab/1N_rcmp.xls'
-out_tab_file = r'/home/lg/work_Ab/1N_TbGn.xls'
-wig_file_dir = r'/home/lg/work_Ab/wig_files/'
+storage_dir = r'/home/manoil-data/lg/Tn-seq_Ab2/'
+working_dir = r'/home/lg/work_Ab2/'
+tnseq_wd = r'/home/lg/work_Ab2/work/'
+tnseq_program_dir = r'/home/lg/Tn-seq-1.1.2/python/'
+sum_mg_norm_dir = r'/home/lg/work_Ab2/sum_mg_norm_files/'
+mapping_meta_data_file = r'/home/lg/work_Ab2/mapping_meta_data.txt'
+out_annot_file = r'/home/lg/work_Ab2/1N_rcmp.xls'
+out_tab_file = r'/home/lg/work_Ab2/1N_TbGn.xls'
+wig_file_dir = r'/home/lg/work_Ab2/wig_files/'
 
 # process_map
 pm_reference = r'/home/lg/work_Ab/AB5075UW_allreplicons.fna'
@@ -27,10 +27,13 @@ pm_options = [  '-j', \                         # very tn end by read1
                 '--tn_end=AGACAG', \            # for T26
                 '--normfactor=10000000', \      # set to 10M
                 '-s',                           # merge slips
+                '-k',                           # sequencing is from 'back end'
                 '--workingdir=' + tnseq_wd ]    # working dir for tn-seq scripts
 '''
-pm_options = [  '-j', '--tn_end=AGACAG', '--normfactor=10000000', '-s', '--workingdir=' + tnseq_wd ]
+pm_options = [  '-j', '--tn_end=AGACAG', '--normfactor=10000000', '-s', '-k', '--workingdir=' + tnseq_wd ]
 '''
+
+# process_annotate_tabulate
 pat_annotation = r'/home/lg/work_Ab/all_features_chromosome.ptt,' + \
                  r'/home/lg/work_Ab/all_features_p1.ptt,' + \
                  r'/home/lg/work_Ab/all_features_p2.ptt,' + \
