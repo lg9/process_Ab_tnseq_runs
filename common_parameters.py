@@ -9,8 +9,10 @@ home_dir = r'/home/lg/'
 raw_files_dir = home_dir
 storage_dir = r'/home/manoil-data/lg/Tn-seq_Ab/'
 working_dir = r'/home/lg/work_Ab2/'
-tnseq_wd = r'/home/lg/work_Ab2/work/'
 tnseq_program_dir = r'/home/lg/Tn-seq-1.1.2/python/'
+
+
+tnseq_wd = r'/home/lg/work_Ab2/work/'
 sum_mg_norm_dir = r'/home/lg/work_Ab2/sum_mg_norm_files/'
 mapping_meta_data_file = r'/home/lg/work_Ab2/mapping_meta_data.txt'
 out_annot_file = r'/home/lg/work_Ab2/1N_rcmp.xls'

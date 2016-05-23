@@ -11,7 +11,7 @@ from math import log
 
 # PARAMETERS and CONSTANTS -----------------------------------------------------
 home_dir = r'/home/lg/'
-storage_dir = r'/home/manoil-data/lg/Tn-seq_Ab2/'
+storage_dir = r'/home/manoil-data/lg/Tn-seq_Ab/'
 working_dir = r'/home/lg/work_Ab2/'
 tnseq_wd = r'/home/lg/work_Ab2/work/'
 tnseq_program_dir = r'/home/lg/Tn-seq-1.1.2/python/'
