@@ -4,6 +4,7 @@
 # For auto processing of A.b. tn-seq run data
 # Written for Python 2.6
 
+import common_parameters
 import os, re
 from subprocess import call
 
@@ -128,7 +129,7 @@ def map_samples():
     return meta_data
 
 def main():
-    map_samples()
+    md = map_samples()
 
 if __name__ == "__main__":
     main()
