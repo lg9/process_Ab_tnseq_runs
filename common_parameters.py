@@ -15,17 +15,16 @@ sum_mg_norm_dir = r'/home/lg/work_Ab2/sum_mg_norm_files/'
 mapping_meta_data_file = r'/home/lg/work_Ab2/mapping_meta_data.txt'
 out_annot_file = r'/home/lg/work_Ab2/1N_rcmp.xls'
 out_tab_file = r'/home/lg/work_Ab2/1N_TbGn.xls'
-
 wig_file_dir = r'/home/lg/work_Ab2/wig_files/'
 
 # process_map
 reference_genome = working_dir + r'AB5075UW_allreplicons.fna'
-pm_options = [  '-j', \                         # very tn end by read1
-                '--tn_end=AGACAG', \            # for T26
-                '--normfactor=10000000', \      # set to 10M
-                '-s',                           # merge slips
-                '-k',                           # sequencing is from 'back end'
-                '--workingdir=' + tnseq_wd ]    # working dir for tn-seq scripts
+pm_options = [  '-j',                       # very tn end by read1
+                '--tn_end=AGACAG',          # for T26
+                '--normfactor=10000000',    # set to 10M
+                '-s',                       # merge slips
+                '-k',                       # sequencing is from 'back end'
+                '--workingdir=' + tnseq_wd] # working dir for tn-seq scripts
 
 # process_annotate_tabulate
 pat_annotation = working_dir + r'all_features_chromosome.ptt,' + \

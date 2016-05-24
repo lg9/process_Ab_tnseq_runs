@@ -21,7 +21,7 @@ def move_fastq_files():
 
     # Regex patterns
     dirpatt = re.compile(r'^(\d{6}(-\d+)?)_S\d')
-    fqfilepatt = re.compile(r'^([a-zA-Z0-9]+)_S\d+_.*((\.fastq)|(\.fq))(\.gz)?')
+    fqfilepatt = re.compile(r'^([a-zA-Z0-9]+)_S\d+_?.*((\.fastq)|(\.fq))(\.gz)?')
 
     # process folders
     cwd = os.getcwd()
@@ -51,15 +51,15 @@ def move_fastq_files():
                     extension = m.group(2)
                     if m.group(5):
                         extension += m.group(5)
-                    newname = sample + '_' + dirname + extension
-                    destination = working_dir + newname
+                    newname = sample + '_' + dirdate + extension
+                    destination = common_parameters.working_dir + newname
                     print "   executing command: mv " \
                           + fqitem + " " + destination
                     args = ['mv', fqitem, destination]
                     call(args)
             # remove the (hopefully) empty directory
             os.chdir(common_parameters.raw_files_dir)
-            args = ['rmdir', rundir + r'/']
+            args = ['rmdir', diritem + r'/']
             call(args)  # will see error if dir is not empty
             # in future, perhaps add exception handling for this call(args)
     os.chdir(cwd)
