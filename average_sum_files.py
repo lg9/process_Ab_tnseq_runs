@@ -4,11 +4,9 @@
 # For auto processing of A.b. tn-seq run data
 # Written for Python 2.6
 
-#import common_parameters
-import os
+import sys
 import re
 from operator import itemgetter
-#from math import log
 import optparse
 
 # ------------------------------------------------------------------------------
@@ -19,7 +17,7 @@ def init_options():
                           usage=usage,
                           add_help_option=True)
     parser.add_option("-o", "--outsumfile", action="store", type="string", dest="outsumfile",
-                      help="path to output _sum file (will list average read counts from the input _sum files)")
+                      help="path to output _sum file (averages read counts from the input _sum files)")
 
     opts, args = parser.parse_args()
     if (opts.outsumfile is None or len(args) == 0):

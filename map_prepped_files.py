@@ -102,7 +102,12 @@ def map_samples():
             args = ['cp', sample_name \
                     + '_trim_sum_mg_norm.txt', common_parameters.sum_mg_norm_dir]
             call(args)
-            del_pattern = re.compile(r'^'+sample_name)
+            sample_name_patt_part = ''
+            for c in sample_name:
+                if c == '+':
+                    sample_name_patt_part += '\'
+                sample_name_patt_part += c
+            del_pattern = re.compile(r'^'+sample_name_patt_part)
             files = os.listdir('.')
             for file in files:
                 if del_pattern.match(file):
