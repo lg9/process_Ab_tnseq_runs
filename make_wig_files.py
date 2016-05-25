@@ -6,29 +6,13 @@
 
 import common_parameters
 import os
-import optparse
-from subprocess import call
+import re
 from operator import itemgetter
 from math import log
 
 # ------------------------------------------------------------------------------
 
-def init_options():
-    usage = "usage: %prog [options]"
-    parser = optparse.OptionParser(prog=sys.argv[0],
-                                   usage=usage,
-                                   add_help_option=True)
-    parser.add_option("-q", "--qn0_only", action="store_true",
-                      default=False, dest="qn0_only",
-                      help="make wig files for q<>0 reads only")
-    parser.add_option("-l", "--log_transform", action="store_true",
-                      default=False, dest="log_transform",
-                      help="log2 transform read counts (for normalize to minimum of 2)")
-
-    opts, args = parser.parse_args()
-    return opts, args
-
-def make_wig_files(rcmpfile=out_annot_file, makeqn0=False, logtfm=False):
+def make_wig_files(rcmpfile=common_parameters.out_annot_file, makeqn0=False, logtfm=False):
     '''
     Makes wig files of the runs in a rcmp file.
     wig files placed in wig_file_dir.
@@ -41,9 +25,6 @@ def make_wig_files(rcmpfile=out_annot_file, makeqn0=False, logtfm=False):
     sample_pattern = re.compile(\
         r'([a-zA-Z0-9]+_\d+(-\d+)?)(_trim)?_sum(_mg)?(_norm)?((_all)|(_q0))?.txt')
 
-# continue working from here
-
-    
     # Read data from rcmp file and place in data structure
     print "   reading data..."
     inf = open(rcmpfile, 'r')
@@ -71,16 +52,16 @@ def make_wig_files(rcmpfile=out_annot_file, makeqn0=False, logtfm=False):
         m = sample_pattern.match(h_flds[i])
         sample = m.group(1)
         # check to see if it's a q0 sample
-        if sample in samples and m.group(7):
+        if sample in samples and m.group(8):
             # if so, record the number of samples and quit the loop
             sample_count = len(samples)
             break
         samples.append(sample)
         # determine the wig file name
         wigfile_name = sample + '_'
-        if m.group(3):
-            wigfile_name += 'mg'
         if m.group(4):
+            wigfile_name += 'mg'
+        if m.group(5):
             wigfile_name += '1N'
         if makeqn0:
             wigfile_name += 'qn0'
@@ -127,12 +108,12 @@ def make_wig_files(rcmpfile=out_annot_file, makeqn0=False, logtfm=False):
     # Make .wig files
     print "   writing wig files..."
     # create wig_file_dir if it doesn't exist
-    if not os.path.isdir(wig_file_dir):
-        os.mkdir(wig_file_dir)
+    if not os.path.isdir(common_parameters.wig_file_dir):
+        os.mkdir(common_parameters.wig_file_dir)
     # create array of filehandles for the various wig files
     fhs = list()
     for wfn in wigfile_names:
-        wfpn = wig_file_dir + wfn
+        wfpn = common_parameters.wig_file_dir + wfn
         fh = open(wfpn, 'w')
         fhs.append(fh)
     # write the data
@@ -156,3 +137,13 @@ def make_wig_files(rcmpfile=out_annot_file, makeqn0=False, logtfm=False):
     # close filehandles
     for fh in fhs:
         fh.close()
+
+def main():
+    print 'making linear .wig files...'
+    make_wig_files()
+    print 'making log2-transformed .wig files...'
+    make_wig_files(logtfm=True)
+    print 'done.'
+    
+if __name__ == "__main__":
+    main()
