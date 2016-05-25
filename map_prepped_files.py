@@ -56,7 +56,7 @@ def map_samples():
     '''
     
     # Regex patterns
-    sample_pattern = re.compile(r'((([a-zA-Z0-9\-\+]+)_(\d{6}(-\d+)?))((\.fastq)|(\.fq)))(\.gz)?')
+    sample_pattern = re.compile(r'((([a-zA-Z0-9\-\+]+)_(\d{6}([\-\+]\d+)?))((\.fastq)|(\.fq)))(\.gz)?')
 
     # process samples
     cwd = os.getcwd()
