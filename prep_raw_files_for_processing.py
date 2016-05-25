@@ -21,7 +21,7 @@ def move_fastq_files():
 
     # Regex patterns
     dirpatt = re.compile(r'^(\d{6}(-\d+)?)_S\d')
-    fqfilepatt = re.compile(r'^([a-zA-Z0-9]+)_S\d+_?.*((\.fastq)|(\.fq))(\.gz)?')
+    fqfilepatt = re.compile(r'^([a-zA-Z0-9\-\+]+)_S\d+_?.*((\.fastq)|(\.fq))(\.gz)?')
 
     # process folders
     cwd = os.getcwd()
