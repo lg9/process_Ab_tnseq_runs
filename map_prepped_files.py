@@ -56,7 +56,7 @@ def map_samples():
     '''
     
     # Regex patterns
-    sample_pattern = re.compile(r'((([a-zA-Z0-9\-\+]+)_(\d{6}([\-\+]\d+)?))((\.fastq)|(\.fq)))(\.gz)?')
+    sample_pattern = re.compile(r'((([a-zA-Z0-9\-\+]+)_(\d{6}[0-9\-\+]*))((\.fastq)|(\.fq)))(\.gz)?')
 
     # process samples
     cwd = os.getcwd()
@@ -72,7 +72,7 @@ def map_samples():
             sample_name = m.group(2)
             sample_tag = m.group(3)
             date_tag = m.group(4)
-            gzipped = m.group(9)
+            gzipped = m.group(8)
             map_logfile = sample_name + '.map.log'
             print 'Processing sample: ', item
             # unzip if necessary

@@ -22,8 +22,8 @@ def make_wig_files(rcmpfile=common_parameters.out_annot_file, makeqn0=False, log
     '''
 
     # Regex
-    sample_pattern = re.compile(\
-        r'([a-zA-Z0-9\-\+]+_\d+([\-\+]\d+)?)(_trim)?_sum(_mg)?(_norm)?((_all)|(_q0))?.txt')
+    sample_pattern = re.compile(r'([a-zA-Z0-9\-\+]+)_([0-9\-\+]+)' +
+                                r'(_trim)?_sum(_mg)?(_norm)?((_all)|(_q0))?.txt')
 
     # Read data from rcmp file and place in data structure
     print "   reading data..."
