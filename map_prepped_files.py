@@ -105,7 +105,7 @@ def map_samples():
             sample_name_patt_part = ''
             for c in sample_name:
                 if c == '+':
-                    sample_name_patt_part += '\'
+                    sample_name_patt_part += '\\'
                 sample_name_patt_part += c
             del_pattern = re.compile(r'^'+sample_name_patt_part)
             files = os.listdir('.')
