@@ -6,6 +6,7 @@
 
 import sys
 import re
+from os.path import basename
 from operator import itemgetter
 import optparse
 
@@ -43,14 +44,14 @@ def average_sum_files(newsumfile, sum_files):
     sfpatt_grpno_type = 3
 
     # check that _sum files are of the same type (merged, normalized, etc.)
-    sumfile_type = sumfile_patt.match(sum_files[0]).group(sfpatt_grpno_type)
+    sumfile_type = sumfile_patt.match(basename(sum_files[0])).group(sfpatt_grpno_type)
     for sf in sum_files:
-        sft = sumfile_patt.match(sf).group(sfpatt_grpno_type)
+        sft = sumfile_patt.match(basename(sf)).group(sfpatt_grpno_type)
         if sft != sumfile_type:
             print 'All _sum files must be of same processing type (e.g., _trim_sum_mg_norm.txt)'
             return None
     # check that the new file is appropriately named
-    nsft = sumfile_patt.match(newsumfile).group(sfpatt_grpno_type)
+    nsft = sumfile_patt.match(basename(newsumfile)).group(sfpatt_grpno_type)
     if nsft != sumfile_type:
         print 'Specified name for new file does not match processing type (' + \
               sumfile_type + ')'
@@ -68,7 +69,7 @@ def average_sum_files(newsumfile, sum_files):
             rpd = (fields[0], int(fields[1]), fields[2])
             rds = (float(fields[3]), float(fields[4]))
             if rpd not in sumfile_data:
-                sumfile_data[rpd] = list
+                sumfile_data[rpd] = list()
             sumfile_data[rpd].append(rds)
         inf.close()
 
@@ -101,7 +102,7 @@ def average_sum_files(newsumfile, sum_files):
         q0_reads = str(q0_avg_rds)
 
         # write the averaged data
-        lineout = '\t'.join([replicon, position, direction, aQ_reads, q0_reads])
+        lineout = '\t'.join([replicon, position, direction, aQ_reads, q0_reads]) + '\n'
         outf.write(lineout)
 
     outf.close()
