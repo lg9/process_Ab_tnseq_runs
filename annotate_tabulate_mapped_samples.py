@@ -23,6 +23,9 @@ def init_options():
                       help="path to text file listing samples to compare" + \
                       " (default = " + common_parameters.default_sample_names_file + \
                       ")" )
+    parser.add_option("-k", "--keepparsedfiles", action="store_true",
+                      dest="keepparsedfiles", default=False,
+                      help="keep parsed ..._all.txt and ..._q0.txt files (default=False)")
     opts, args = parser.parse_args()
 
     return opts, args
@@ -35,7 +38,7 @@ def get_sample_names_f_samplenamesfile(sample_names_file):
     snf.close()
     return samples
 
-def tabulate_samples(sample_names, remove_parsed_files=True):
+def tabulate_samples(sample_names, keep_parsed_files=False):
     ''' Runs process_annotate_tabulate.py
         on the corresponding _trim_sum_mg_norm.txt files
         from a list of specified samples.
@@ -51,7 +54,8 @@ def tabulate_samples(sample_names, remove_parsed_files=True):
     call(args)
     # remove ..._all.txt and ..._q0.txt files created by process_annotate_tabulate
     # (in future, make this an option)
-    if remove_parsed_files:
+    if not keep_parsed_files:
+        print 'Removing parsed files (..._all.txt and ..._q0.txt files)'
         os.chdir(common_parameters.sum_mg_norm_dir)
         for s in sample_names:
             args = ['rm', s + '_trim_sum_mg_norm_all.txt']
@@ -63,7 +67,7 @@ def tabulate_samples(sample_names, remove_parsed_files=True):
 def main():
     opts, args = init_options()
     sample_names = get_sample_names_f_samplenamesfile(opts.samplenamesfile)
-    tabulate_samples(sample_names)
+    tabulate_samples(sample_names, opts.keepparsedfiles)
 
 if __name__ == "__main__":
     main()
