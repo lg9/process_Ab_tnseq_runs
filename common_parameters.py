@@ -14,6 +14,7 @@ tnseq_wd = r'/home/lg/work_Ab2/work/'
 sum_mg_norm_dir = r'/home/lg/work_Ab2/sum_mg_norm_files/'
 mapping_meta_data_file = r'/home/lg/work_Ab2/mapping_meta_data.txt'
 default_sample_names_file = working_dir + r'samples_to_anno_tab.xls'
+ok_locs_file = working_dir + r'ok_GPv1_locs.xls'
 out_annot_file = r'/home/lg/work_Ab2/1N_rcmp.xls'
 out_tab_file = r'/home/lg/work_Ab2/1N_TbGn.xls'
 wig_file_dir = r'/home/lg/work_Ab2/wig_files/'
@@ -34,6 +35,7 @@ pat_annotation = working_dir + r'all_features_chromosome.ptt,' + \
                  working_dir + r'all_features_p3.ptt'
 pat_options = [ '--reffile=' + reference_genome, \
                 '--annofiles=' + pat_annotation, \
+                '--ok_locs_file=' + ok_locs_file, \
                 '--outfile_anno=' + out_annot_file, \
                 '--outfile_tab=' + out_tab_file, \
                 '--workingdir=' + tnseq_wd ]
